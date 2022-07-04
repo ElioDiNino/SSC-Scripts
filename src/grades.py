@@ -55,7 +55,7 @@ def gradesCheck():
                     print("Grade for " + course + ": " + grade.text)
                     gradeValue = grade.text
                     found += 1
-                    # sendEmail(course, gradeValue)
+                    sendEmail(course, gradeValue)
                     foundCourses.append(course)
 
             for course in foundCourses:
