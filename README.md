@@ -21,7 +21,7 @@ Huge thank you to [@Levivus](https://github.com/Levivus) for the specializations
 8. Add your CWL and CWL password in [`setup.py`](/src/setup-example.py)
 9. Specify which email(s) you want to be notified in [`setup.py`](/src/setup-example.py)
 10. Set the checking interval you want in seconds in [`setup.py`](/src/setup-example.py)
-11. If you are running [`grades.py`](/src/setup.py), then specify the course(s) you want to watch for grade posting
+11. If you are running [`grades.py`](/src/grades.py), then specify the course(s) you want to watch for grade posting
 
 ## Running Instructions
 ```python
