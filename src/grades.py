@@ -4,7 +4,7 @@ import time
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-from setup import CWL, PASSWORD, EMAIL_LIST, CHECK_INTERVAL
+from setup import CWL, PASSWORD, EMAIL_LIST, EMAIL_SEND_DELAY, CHECK_INTERVAL, SEND_DATA
 
 # Chrome driver releases: https://chromedriver.storage.googleapis.com/index.html
 s = Service('chromedriver.exe')
@@ -12,7 +12,8 @@ s = Service('chromedriver.exe')
 
 def gradesCheck():
     # Accepts a list with each entry as "COURSE_CODE #" E.g. "MATH 100"
-    courses = ["PHIL 120"]
+    courses = ["PHIL 120", "MATH 100", "MATH 152"]
+    foundCourses = []
     found = 0
     origLength = len(courses)
 
@@ -48,25 +49,32 @@ def gradesCheck():
                         break
                 parent = search.find_element(by=By.XPATH, value="..")
                 grade = parent.find_element(by=By.XPATH, value="td[3]")
-                if grade.text == " ":
+                if grade.text == " " or grade.text == "":
                     print("No grade for " + course + " yet")
                 else:
                     print("Grade for " + course + ": " + grade.text)
+                    gradeValue = grade.text
                     found += 1
-                    sendEmail(course)
-                    courses.remove(course)
-        except:
-            print("errorGrades")
+                    # sendEmail(course, gradeValue)
+                    foundCourses.append(course)
+
+            for course in foundCourses:
+                courses.remove(course)
+            foundCourses = []
+
+        except Exception as e:
+            print("errorGrades: " + str(e))
 
         driver.quit()
 
-        time.sleep(CHECK_INTERVAL)
+        if found < origLength:
+            time.sleep(CHECK_INTERVAL)
 
     print("All grades found!")
     return
 
 
-def sendEmail(course):
+def sendEmail(course, gradeValue):
     sentEmail = 0
 
     while sentEmail == 0:
@@ -129,6 +137,9 @@ def sendEmail(course):
             search.send_keys(Keys.ENTER)
             search.send_keys(course + "\n")
             search.send_keys(Keys.ENTER)
+            if SEND_DATA:
+                search.send_keys("Grade found: " + gradeValue + "\n")
+                search.send_keys(Keys.ENTER)
             search.send_keys(
                 "SSC Grades are available at https://ssc.adm.ubc.ca/sscportal/servlets/SSCMain.jsp?function=SessGradeRpt\n")
             search.send_keys(Keys.ENTER)
@@ -144,7 +155,7 @@ def sendEmail(course):
             search.click()
             sentEmail = 1
 
-            time.sleep(20)
+            time.sleep(EMAIL_SEND_DELAY)
 
             print("Email sent!")
         except:
