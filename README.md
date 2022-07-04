@@ -7,6 +7,8 @@ This repository is home to different scripts for checking when new information (
 
 [`specs.py`](/src/specs.py) - For first year engineering students to get notified when Engineering Specializations have been released
 
+Huge thank you to [@Levivus](https://github.com/Levivus) for the specializations script which is what I based my grades script off of
+
 ## Setup Instructions
 
 1. Make sure you have Google Chrome installed. [Download it here](https://support.google.com/chrome/answer/95346) if it is not installed already.
