@@ -27,8 +27,7 @@ Huge thank you to [@Levivus](https://github.com/Levivus) for the his original sp
     - Set the `EMAIL_SEND_DELAY`, which is how long the program will wait for the email to send before closing the browser. By default, UBC Webmail has a long delay before it sends an email so make sure this delay is long enough (60 seconds is safe).
     - Set the `CHECK_INTERVAL` you want in seconds. This is the length of time the program will wait between checks.
     - Choose whether you want `SEND_DATA` to be `True` or `False`. This will determine if the information found (specialization or grade) will be included in the email that is sent. Disable this if you are emailing multiple people and you want to keep your grades/specialization private.
-
-11. If you are running [`grades.py`](/src/grades.py), then specify the course(s) you want to watch at the top of the [`gradesCheck()`](https://github.com/ElioDiNino/SSC-Scripts/blob/1cf2ebb9f392fc1ef00598ba72778217f3060b0d/src/grades.py#L13) function
+    - If you are running [`grades.py`](/src/grades.py), then specify the course(s) you want to watch for new grades
 
 ## Running Instructions
 ```python

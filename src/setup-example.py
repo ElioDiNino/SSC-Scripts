@@ -8,3 +8,7 @@ CHECK_INTERVAL = 3600  # 1 hour
 # Choose whether the data found on the script runner's SSC will be included in the email.
 # Disable this if you are emailing multiple people and you want to keep your grades/specialization private.
 SEND_DATA = False
+
+### For grades.py only ###
+# Accepts a list with each entry as "COURSE_CODE #" E.g. "MATH 100"
+courses = ["MATH 100", "APSC 101", "WRDS 150B"]
