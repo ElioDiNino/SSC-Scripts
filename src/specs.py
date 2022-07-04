@@ -4,7 +4,7 @@ import time
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-from setup import CWL, PASSWORD, EMAIL_LIST, CHECK_INTERVAL
+from setup import CWL, PASSWORD, EMAIL_LIST, EMAIL_SEND_DELAY, CHECK_INTERVAL, SEND_DATA
 
 # Chrome driver releases: https://chromedriver.storage.googleapis.com/index.html
 s = Service('chromedriver.exe')
@@ -42,13 +42,18 @@ def specsCheck():
         try:
             search = driver.find_element(by=By.NAME, value="selSpec")
             search.click()
+            search = driver.find_element(
+                by=By.CLASS_NAME, value="program-spec-name")
+            spec = search.text
+            spec = spec[3:]
             found = 1
-            sendEmail()
+            sendEmail(spec)
         except:
             print("No specializations yet")
             time.sleep(2)
 
         driver.quit()
+
         if found == 0:
             time.sleep(CHECK_INTERVAL)
 
@@ -57,7 +62,7 @@ def specsCheck():
     return
 
 
-def sendEmail():
+def sendEmail(spec):
     sentEmail = 0
 
     while sentEmail == 0:
@@ -119,6 +124,9 @@ def sendEmail():
             search.send_keys(
                 "Second year Engineering Specializations have been released!\n")
             search.send_keys(Keys.ENTER)
+            if SEND_DATA:
+                search.send_keys("Specialization found: " + spec + "\n")
+                search.send_keys(Keys.ENTER)
             search.send_keys(
                 "Specializations are available at https://courses.students.ubc.ca/cs/courseschedule?pname=regi&tname=regi\n")
             search.send_keys(Keys.ENTER)
@@ -134,7 +142,7 @@ def sendEmail():
             search.click()
             sentEmail = 1
 
-            time.sleep(20)
+            time.sleep(EMAIL_SEND_DELAY)
 
             print("Email sent!")
         except:
