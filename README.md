@@ -15,14 +15,16 @@ This repository is home to different scripts for checking when new information (
 4. Download the appropriate zip file for your system and extract the contents
 5. Put `chromedriver.exe` in the same folder as the the scripts (inside of [`src`](/src))
 6. Make sure Selenium is installed for python. See [this link](https://selenium-python.readthedocs.io/installation.html) for installation instructions.
-7. Add your CWL and CWL password in [`setup.py`](/src/setup.py)
-8. Specify which email(s) you want to be notified in [`setup.py`](/src/setup.py)
-9. Set the checking interval you want in seconds in [`setup.py`](/src/setup.py)
-10. If you are running [`grades.py`](/src/setup.py), then specify the course(s) you want to watch for grade posting
+7. Rename [`setup-example.py`](/src/setup-example.py) to `setup.py`
+8. Add your CWL and CWL password in [`setup.py`](/src/setup-example.py)
+9. Specify which email(s) you want to be notified in [`setup.py`](/src/setup-example.py)
+10. Set the checking interval you want in seconds in [`setup.py`](/src/setup-example.py)
+11. If you are running [`grades.py`](/src/setup.py), then specify the course(s) you want to watch for grade posting
 
 ## Running Instructions
 ```python
-python ./script_name.py
+cd src
+python script_name.py
 ```
 
-E.g. `python ./grades.py`
+E.g. `python grades.py`
