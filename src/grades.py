@@ -16,11 +16,11 @@ def gradesCheck(courses):
     origLength = len(courses)
 
     while found < origLength:
-
-        driver = webdriver.Chrome(service=s)
-        driver.get("https://cas.id.ubc.ca/ubc-cas/login?TARGET=https%3A%2F%2Fssc.adm.ubc.ca%2Fsscportal%2Fservlets%2FSSCMain.jsp%3Ffunction%3DSessGradeRpt")
-
         try:
+            driver = webdriver.Chrome(service=s)
+            driver.get(
+                "https://cas.id.ubc.ca/ubc-cas/login?TARGET=https%3A%2F%2Fssc.adm.ubc.ca%2Fsscportal%2Fservlets%2FSSCMain.jsp%3Ffunction%3DSessGradeRpt")
+
             # Fill in username field
             search = driver.find_element(by=By.NAME, value="username")
             search.send_keys(CWL)
@@ -75,13 +75,12 @@ def sendEmail(course, gradeValue):
     sentEmail = 0
 
     while sentEmail == 0:
-
-        driver = webdriver.Chrome(service=s)
-        driver.get("https://webmail.student.ubc.ca/")
-
-        time.sleep(3)
-
         try:
+            driver = webdriver.Chrome(service=s)
+            driver.get("https://webmail.student.ubc.ca/")
+
+            time.sleep(3)
+
             search = driver.find_element(by=By.NAME, value="username")
             search.click()
             search.send_keys(CWL + "@student.ubc.ca")
