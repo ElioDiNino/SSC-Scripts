@@ -2,9 +2,12 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import time
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
 from setup import CWL, PASSWORD, EMAIL_LIST, EMAIL_SEND_DELAY, CHECK_INTERVAL, SEND_DATA
+from grades import login
 
 # Chrome driver releases: https://chromedriver.storage.googleapis.com/index.html
 s = Service('chromedriver.exe')
@@ -14,43 +17,39 @@ def specsCheck():
     found = 0
 
     while found == 0:
-
-        driver = webdriver.Chrome(service=s)
-        driver.get("https://cas.id.ubc.ca/ubc-cas/login?TARGET=https%3A%2F%2Fcourses.students.ubc.ca%2Fcs%2Fsecure%2Flogin%3FIMGSUBMIT.x%3D39%26IMGSUBMIT.y%3D19")
-
         try:
-            search = driver.find_element(by=By.NAME, value="username")
-            search.send_keys(CWL)
-        except:
-            print("errorName")
+            options = Options()
+            options.add_experimental_option(
+                'excludeSwitches', ['enable-logging'])
 
-        try:
-            search = driver.find_element(by=By.NAME, value="password")
-            search.send_keys(PASSWORD)
-            search.send_keys(Keys.RETURN)
-            time.sleep(6)
-        except:
-            print("errorPass")
+            driver = webdriver.Chrome(service=s, options=options)
+            driver.get("https://cas.id.ubc.ca/ubc-cas/login?TARGET=https%3A%2F%2Fcourses.students.ubc.ca%2Fcs%2Fsecure%2Flogin%3FIMGSUBMIT.x%3D39%26IMGSUBMIT.y%3D19")
 
-        try:
+            login(driver, CWL, PASSWORD)
+
+            WebDriverWait(driver, timeout=15).until(
+                EC.element_to_be_clickable((By.LINK_TEXT, "Program")))
+
             search = driver.find_element(by=By.LINK_TEXT, value="Program")
             search.click()
-            time.sleep(2)
-        except:
-            print("errorProg")
 
-        try:
-            search = driver.find_element(by=By.NAME, value="selSpec")
-            search.click()
-            search = driver.find_element(
-                by=By.CLASS_NAME, value="program-spec-name")
-            spec = search.text
-            spec = spec[3:]
-            found = 1
-            sendEmail(spec)
-        except:
-            print("No specializations yet")
-            time.sleep(2)
+            try:
+                time.sleep(2)
+
+                search = driver.find_element(by=By.NAME, value="selSpec")
+                search.click()
+                search = driver.find_element(
+                    by=By.CLASS_NAME, value="program-spec-name")
+                spec = search.text
+                spec = spec[3:]
+                found = 1
+                sendEmail(spec)
+            except:
+                print("No specializations yet")
+                time.sleep(2)
+
+        except Exception as e:
+            print("Error Checking Specializations: " + str(e))
 
         driver.quit()
 
@@ -66,56 +65,39 @@ def sendEmail(spec):
     sentEmail = 0
 
     while sentEmail == 0:
-
-        driver = webdriver.Chrome(service=s)
-
-        driver.get("https://webmail.student.ubc.ca/")
-
-        time.sleep(3)
-
         try:
-            search = driver.find_element(by=By.NAME, value="username")
-            search.click()
-            search.send_keys(CWL + "@student.ubc.ca")
-        except:
-            print("errorEmail")
+            driver = webdriver.Chrome(service=s)
+            driver.get("https://webmail.student.ubc.ca/")
 
-        try:
-            search = driver.find_element(by=By.NAME, value="password")
-            search.send_keys(PASSWORD)
-            search.send_keys(Keys.RETURN)
-            time.sleep(3)
-        except:
-            print("errorPass")
+            login(driver, CWL + "@student.ubc.ca", PASSWORD)
 
-        try:
+            WebDriverWait(driver, timeout=15).until(EC.element_to_be_clickable(
+                (By.XPATH, "//*[@title = 'Write a new message (N)']")))
+
             search = driver.find_element(
                 by=By.XPATH, value="//*[@title = 'Write a new message (N)']")
             search.click()
-            time.sleep(2)
-        except:
-            print("errorNewEmail")
 
-        try:
+            WebDriverWait(driver, timeout=15).until(
+                EC.element_to_be_clickable((By.XPATH, "//*[@title = 'Send']")))
+
             search = driver.find_element(
                 by=By.XPATH, value="//*[@aria-label = 'To']")
             for email in EMAIL_LIST:
                 search.send_keys(email)
                 search.send_keys(Keys.TAB)
-            time.sleep(2)
-        except:
-            print("errorTo")
 
-        try:
+            WebDriverWait(driver, timeout=15).until(
+                EC.element_to_be_clickable((By.XPATH, "//*[@aria-label = 'Subject,']")))
+
             search = driver.find_element(
                 by=By.XPATH, value="//*[@aria-label = 'Subject,']")
             search.click()
             search.send_keys("Specializations Release")
-            time.sleep(2)
-        except:
-            print("errorSubject")
 
-        try:
+            WebDriverWait(driver, timeout=15).until(
+                EC.element_to_be_clickable((By.XPATH, "//*[@aria-label = 'Message body']")))
+
             search = driver.find_element(
                 by=By.XPATH, value="//*[@aria-label = 'Message body']")
             search.clear()
@@ -132,11 +114,10 @@ def sendEmail(spec):
             search.send_keys(Keys.ENTER)
             search.send_keys(Keys.CONTROL + "i")
             search.send_keys("This is an automated email")
-            time.sleep(2)
-        except:
-            print("errorTextPaste")
 
-        try:
+            WebDriverWait(driver, timeout=15).until(
+                EC.element_to_be_clickable((By.XPATH, "//*[@title = 'Send']")))
+
             search = driver.find_element(
                 by=By.XPATH, value="//*[@title = 'Send']")
             search.click()
@@ -145,9 +126,8 @@ def sendEmail(spec):
             time.sleep(EMAIL_SEND_DELAY)
 
             print("Email sent!")
-        except:
-            print("errorSend")
-
+        except Exception as e:
+            print("Error sending email: " + str(e))
     return
 
 
