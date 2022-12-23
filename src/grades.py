@@ -2,37 +2,37 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import time
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
 from setup import CWL, PASSWORD, EMAIL_LIST, EMAIL_SEND_DELAY, CHECK_INTERVAL, SEND_DATA, courses
 
 # Chrome driver releases: https://chromedriver.storage.googleapis.com/index.html
 s = Service('chromedriver.exe')
 
 
-def gradesCheck(courses):
+def gradesCheck(courses: list):
     foundCourses = []
     found = 0
     origLength = len(courses)
 
     while found < origLength:
         try:
-            driver = webdriver.Chrome(service=s)
+            options = Options()
+            options.add_experimental_option(
+                'excludeSwitches', ['enable-logging'])
+
+            driver = webdriver.Chrome(service=s, options=options)
             driver.get(
                 "https://cas.id.ubc.ca/ubc-cas/login?TARGET=https%3A%2F%2Fssc.adm.ubc.ca%2Fsscportal%2Fservlets%2FSSCMain.jsp%3Ffunction%3DSessGradeRpt")
 
-            # Fill in username field
-            search = driver.find_element(by=By.NAME, value="username")
-            search.send_keys(CWL)
+            login(driver, CWL, PASSWORD)
 
-            # Fill in password field and submit login
-            search = driver.find_element(by=By.NAME, value="password")
-            search.send_keys(PASSWORD)
-            search.send_keys(Keys.RETURN)
-            time.sleep(6)
+            WebDriverWait(driver, timeout=15).until(
+                EC.frame_to_be_available_and_switch_to_it("iframe-main"))
 
             # Search through grades and find the right course(s)
-            driver.switch_to.frame("iframe-main")
             for course in courses:
                 search = driver.find_element(
                     by=By.ID, value="allSessionsGrades")
@@ -71,7 +71,7 @@ def gradesCheck(courses):
     return
 
 
-def sendEmail(course, gradeValue):
+def sendEmail(course: str, gradeValue: str):
     sentEmail = 0
 
     while sentEmail == 0:
@@ -79,34 +79,34 @@ def sendEmail(course, gradeValue):
             driver = webdriver.Chrome(service=s)
             driver.get("https://webmail.student.ubc.ca/")
 
-            time.sleep(3)
+            login(driver, CWL + "@student.ubc.ca", PASSWORD)
 
-            search = driver.find_element(by=By.NAME, value="username")
-            search.click()
-            search.send_keys(CWL + "@student.ubc.ca")
-
-            search = driver.find_element(by=By.NAME, value="password")
-            search.send_keys(PASSWORD)
-            search.send_keys(Keys.RETURN)
-            time.sleep(3)
+            WebDriverWait(driver, timeout=15).until(EC.element_to_be_clickable(
+                (By.XPATH, "//*[@title = 'Write a new message (N)']")))
 
             search = driver.find_element(
                 by=By.XPATH, value="//*[@title = 'Write a new message (N)']")
             search.click()
-            time.sleep(2)
+
+            WebDriverWait(driver, timeout=15).until(
+                EC.element_to_be_clickable((By.XPATH, "//*[@title = 'Send']")))
 
             search = driver.find_element(
                 by=By.XPATH, value="//*[@aria-label = 'To']")
             for email in EMAIL_LIST:
                 search.send_keys(email)
                 search.send_keys(Keys.TAB)
-            time.sleep(2)
+
+            WebDriverWait(driver, timeout=15).until(
+                EC.element_to_be_clickable((By.XPATH, "//*[@aria-label = 'Subject,']")))
 
             search = driver.find_element(
                 by=By.XPATH, value="//*[@aria-label = 'Subject,']")
             search.click()
             search.send_keys("Course Grade Release - " + course)
-            time.sleep(2)
+
+            WebDriverWait(driver, timeout=15).until(
+                EC.element_to_be_clickable((By.XPATH, "//*[@aria-label = 'Message body']")))
 
             search = driver.find_element(
                 by=By.XPATH, value="//*[@aria-label = 'Message body']")
@@ -126,7 +126,9 @@ def sendEmail(course, gradeValue):
             search.send_keys(Keys.ENTER)
             search.send_keys(Keys.CONTROL + "i")
             search.send_keys("This is an automated email")
-            time.sleep(2)
+
+            WebDriverWait(driver, timeout=15).until(
+                EC.element_to_be_clickable((By.XPATH, "//*[@title = 'Send']")))
 
             search = driver.find_element(
                 by=By.XPATH, value="//*[@title = 'Send']")
@@ -138,8 +140,24 @@ def sendEmail(course, gradeValue):
             print("Email sent!")
         except Exception as e:
             print("Error sending email: " + str(e))
-
     return
+
+
+def login(driver: webdriver.Chrome, username: str, password: str):
+    # Wait for login page to load
+    time.sleep(1)
+    WebDriverWait(driver, timeout=15).until(EC.visibility_of(driver.find_element(
+        by=By.ID, value="username")))
+
+    # Fill in username field
+    search = driver.find_element(by=By.NAME, value="username")
+    search.click()
+    search.send_keys(username)
+
+    # Fill in password field and submit login
+    search = driver.find_element(by=By.NAME, value="password")
+    search.send_keys(password)
+    search.send_keys(Keys.RETURN)
 
 
 if __name__ == "__main__":
