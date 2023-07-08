@@ -36,3 +36,8 @@ python script_name.py
 ```
 
 E.g. `python grades.py`
+
+## Troubleshooting
+If you run into errors, the script will automatically save a screenshot of the browser window at the time of the error as well as print the error to the terminal. The screenshot will be saved as either `ssc_error.png` or `email_error.png` depending on where the error occurred. If you notice the screenshot is of a page that says an automated browser has been detected, please edit the script you are using to remove the lines `options.add_argument("--headless=new")` (this appears twice in each script). This will mean that subsequent runs of the script will open a browser window and you will be able to see what is happening (instead of it running hidden in the background).
+
+If you are having trouble or you notice the script is no longer functioning correctly, please open an issue and attach the error screenshot and additional details.
