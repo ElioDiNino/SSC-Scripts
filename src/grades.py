@@ -19,9 +19,11 @@ def gradesCheck(courses: list):
 
     while found < origLength:
         try:
+            # Chrome options: https://www.selenium.dev/documentation/webdriver/browsers/chrome/
             options = Options()
             options.add_experimental_option(
                 'excludeSwitches', ['enable-logging'])
+            options.add_argument("--headless=new")
 
             driver = webdriver.Chrome(service=s, options=options)
             driver.get(
@@ -60,6 +62,7 @@ def gradesCheck(courses: list):
 
         except Exception as e:
             print("Error Checking SSC: " + str(e))
+            driver.save_screenshot("ssc_error.png")
 
         driver.quit()
 
@@ -76,7 +79,12 @@ def sendEmail(course: str, gradeValue: str):
 
     while sentEmail == 0:
         try:
-            driver = webdriver.Chrome(service=s)
+            options = Options()
+            options.add_experimental_option(
+                'excludeSwitches', ['enable-logging'])
+            options.add_argument("--headless=new")
+            
+            driver = webdriver.Chrome(service=s, options=options)
             driver.get("https://webmail.student.ubc.ca/")
 
             login(driver, CWL + "@student.ubc.ca", PASSWORD)
@@ -140,6 +148,7 @@ def sendEmail(course: str, gradeValue: str):
             print("Email sent!")
         except Exception as e:
             print("Error sending email: " + str(e))
+            driver.save_screenshot("email_error.png")
     return
 
 

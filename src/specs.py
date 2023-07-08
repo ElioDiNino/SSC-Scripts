@@ -18,9 +18,11 @@ def specsCheck():
 
     while found == 0:
         try:
+            # Chrome options: https://www.selenium.dev/documentation/webdriver/browsers/chrome/
             options = Options()
             options.add_experimental_option(
                 'excludeSwitches', ['enable-logging'])
+            options.add_argument("--headless=new")
 
             driver = webdriver.Chrome(service=s, options=options)
             driver.get("https://cas.id.ubc.ca/ubc-cas/login?TARGET=https%3A%2F%2Fcourses.students.ubc.ca%2Fcs%2Fsecure%2Flogin%3FIMGSUBMIT.x%3D39%26IMGSUBMIT.y%3D19")
@@ -43,6 +45,8 @@ def specsCheck():
                 spec = search.text
                 spec = spec[3:]
                 found = 1
+
+                print("Specializations released!")
                 sendEmail(spec)
             except:
                 print("No specializations yet")
@@ -50,13 +54,12 @@ def specsCheck():
 
         except Exception as e:
             print("Error Checking Specializations: " + str(e))
+            driver.save_screenshot("ssc_error.png")
 
         driver.quit()
 
         if found == 0:
             time.sleep(CHECK_INTERVAL)
-
-    print("Specializations released!")
 
     return
 
@@ -66,7 +69,12 @@ def sendEmail(spec):
 
     while sentEmail == 0:
         try:
-            driver = webdriver.Chrome(service=s)
+            options = Options()
+            options.add_experimental_option(
+                'excludeSwitches', ['enable-logging'])
+            options.add_argument("--headless=new")
+            
+            driver = webdriver.Chrome(service=s, options=options)
             driver.get("https://webmail.student.ubc.ca/")
 
             login(driver, CWL + "@student.ubc.ca", PASSWORD)
@@ -128,6 +136,7 @@ def sendEmail(spec):
             print("Email sent!")
         except Exception as e:
             print("Error sending email: " + str(e))
+            driver.save_screenshot("email_error.png")
     return
 
 
