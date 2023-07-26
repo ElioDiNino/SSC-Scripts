@@ -9,6 +9,12 @@ This repository is home to different scripts for checking when new information (
 
 Huge thank you to [@Levivus](https://github.com/Levivus) for the his original specializations script which is what allowed me to develop both of these scripts
 
+## Limitations
+
+- Due to 2FA requirements, these scripts not work for anyone who is employed by UBC
+- The computer the scripts run on must continuously remain on for SSC to be periodically scraped
+  - A desktop computer or server is recommended for this reason
+
 ## Setup Instructions
 
 1. Ensure that you have Python installed. Visit [this link](https://www.python.org/downloads/) if you need to install it.
