@@ -1,16 +1,23 @@
+import logging
+import time
+
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-import time
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
+
 from setup import CWL, PASSWORD, EMAIL_LIST, EMAIL_SEND_DELAY, CHECK_INTERVAL, SEND_DATA
 from grades import login
 
 # Chrome driver releases: https://chromedriver.storage.googleapis.com/index.html
 s = Service('chromedriver.exe')
+# Logging configuration
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s   %(levelname)-5s  %(message)s',
+                    datefmt='%Y-%m-%d %I:%M %p')
 
 
 def specsCheck():
@@ -46,14 +53,14 @@ def specsCheck():
                 spec = spec[3:]
                 found = 1
 
-                print("Specializations released!")
+                logging.info("Specializations released!")
                 sendEmail(spec)
             except:
-                print("No specializations yet")
+                logging.info("No specializations yet")
                 time.sleep(2)
 
         except Exception as e:
-            print("Error Checking Specializations: " + str(e))
+            logging.exception("Error Checking Specializations:")
             driver.save_screenshot("ssc_error.png")
 
         driver.quit()
@@ -133,9 +140,9 @@ def sendEmail(spec):
 
             time.sleep(EMAIL_SEND_DELAY)
 
-            print("Email sent!")
+            logging.info("Email sent!")
         except Exception as e:
-            print("Error sending email: " + str(e))
+            logging.exception("Error sending email:")
             driver.save_screenshot("email_error.png")
     return
 

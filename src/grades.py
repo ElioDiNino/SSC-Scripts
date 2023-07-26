@@ -1,15 +1,22 @@
+import logging
+import time
+
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-import time
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
-from setup import CWL, PASSWORD, EMAIL_LIST, EMAIL_SEND_DELAY, CHECK_INTERVAL, SEND_DATA, courses
+
+from setup import CWL, PASSWORD, EMAIL_LIST, EMAIL_SEND_DELAY, CHECK_INTERVAL, SEND_DATA, DUO_CODES, courses
 
 # Chrome driver releases: https://chromedriver.storage.googleapis.com/index.html
 s = Service('chromedriver.exe')
+# Logging configuration
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s   %(levelname)-5s  %(message)s',
+                    datefmt='%Y-%m-%d %I:%M %p')
 
 
 def gradesCheck(courses: list):
@@ -48,9 +55,9 @@ def gradesCheck(courses: list):
                 grade = parent.find_element(by=By.XPATH, value="td[3]")
                 # Check if there's a grade yet
                 if grade.text == " " or grade.text == "":
-                    print("No grade for " + course + " yet")
+                    logging.info("No grade for " + course + " yet")
                 else:
-                    print("Grade for " + course + ": " + grade.text)
+                    logging.info("Grade for " + course + ": " + grade.text)
                     gradeValue = grade.text
                     found += 1
                     sendEmail(course, gradeValue)
@@ -61,16 +68,16 @@ def gradesCheck(courses: list):
             foundCourses = []
 
         except Exception as e:
-            print("Error Checking SSC: " + str(e))
+            logging.exception("Error Checking SSC:")
             driver.save_screenshot("ssc_error.png")
 
         driver.quit()
 
         if found < origLength:
-            print("Delay before retrying check")
+            logging.info("Delay before retrying check")
             time.sleep(CHECK_INTERVAL)
 
-    print("All grades found!")
+    logging.info("All grades found!")
     return
 
 
@@ -145,9 +152,9 @@ def sendEmail(course: str, gradeValue: str):
 
             time.sleep(EMAIL_SEND_DELAY)
 
-            print("Email sent!")
+            logging.info("Email sent!")
         except Exception as e:
-            print("Error sending email: " + str(e))
+            logging.exception("Error sending email:")
             driver.save_screenshot("email_error.png")
     return
 
