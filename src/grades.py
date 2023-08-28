@@ -1,48 +1,40 @@
 import logging
 import time
 
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
-from setup import CWL, PASSWORD, EMAIL_LIST, EMAIL_SEND_DELAY, CHECK_INTERVAL, SEND_DATA, DUO_CODES, courses
+import common
+from setup import CWL, PASSWORD, EMAIL_LIST, EMAIL_SEND_DELAY, CHECK_INTERVAL, SEND_DATA, courses
 
-# Chrome driver releases: https://chromedriver.storage.googleapis.com/index.html
-s = Service('chromedriver.exe')
-# Logging configuration
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s   %(levelname)-5s  %(message)s',
-                    datefmt='%Y-%m-%d %I:%M %p')
+TARGET_URL = ("https://cas.id.ubc.ca/ubc-cas/login?TARGET=https%3A%2F%2Fssc.adm.ubc.ca%2Fsscportal%2Fservlets"
+              "%2FSSCMain.jsp%3Ffunction%3DSessGradeRpt")
 
 
-def gradesCheck(courses: list):
-    foundCourses = []
+def grades_check(check_courses: list):
+    common.setup()
+
+    found_courses = []
     found = 0
-    origLength = len(courses)
+    orig_length = len(check_courses)
 
-    while found < origLength:
+    while found < orig_length:
+        driver = common.webdriver_config(True)
+
         try:
-            # Chrome options: https://www.selenium.dev/documentation/webdriver/browsers/chrome/
-            options = Options()
-            options.add_experimental_option(
-                'excludeSwitches', ['enable-logging'])
-            options.add_argument("--headless=new")
-
-            driver = webdriver.Chrome(service=s, options=options)
             driver.get(
-                "https://cas.id.ubc.ca/ubc-cas/login?TARGET=https%3A%2F%2Fssc.adm.ubc.ca%2Fsscportal%2Fservlets%2FSSCMain.jsp%3Ffunction%3DSessGradeRpt")
+                "https://cas.id.ubc.ca/ubc-cas/login?TARGET=https%3A%2F%2Fssc.adm.ubc.ca%2Fsscportal%2Fservlets"
+                "%2FSSCMain.jsp%3Ffunction%3DSessGradeRpt")
 
-            login(driver, CWL, PASSWORD)
+            common.login(driver, CWL, PASSWORD)
 
             WebDriverWait(driver, timeout=15).until(
-                EC.frame_to_be_available_and_switch_to_it("iframe-main"))
+                ec.frame_to_be_available_and_switch_to_it("iframe-main"))
 
             # Search through grades and find the right course(s)
-            for course in courses:
+            for course in check_courses:
                 search = driver.find_element(
                     by=By.ID, value="allSessionsGrades")
                 search = search.find_elements(
@@ -58,22 +50,22 @@ def gradesCheck(courses: list):
                     logging.info("No grade for " + course + " yet")
                 else:
                     logging.info("Grade for " + course + ": " + grade.text)
-                    gradeValue = grade.text
+                    grade_value = grade.text
                     found += 1
-                    sendEmail(course, gradeValue)
-                    foundCourses.append(course)
+                    send_email(course, grade_value)
+                    found_courses.append(course)
 
-            for course in foundCourses:
-                courses.remove(course)
-            foundCourses = []
+            for course in found_courses:
+                check_courses.remove(course)
+            found_courses = []
 
         except Exception as e:
             logging.exception("Error Checking SSC:")
-            driver.save_screenshot("ssc_error.png")
+            driver.save_screenshot("ssc_error_" + time.strftime("%Y-%m-%d_%H-%M-%S") + ".png")
 
         driver.quit()
 
-        if found < origLength:
+        if found < orig_length:
             logging.info("Delay before retrying check")
             time.sleep(CHECK_INTERVAL)
 
@@ -81,22 +73,18 @@ def gradesCheck(courses: list):
     return
 
 
-def sendEmail(course: str, gradeValue: str):
-    sentEmail = 0
+def send_email(course: str, grade_value: str):
+    sent_email = 0
 
-    while sentEmail == 0:
+    while sent_email == 0:
+        driver = common.webdriver_config(False)
+
         try:
-            options = Options()
-            options.add_experimental_option(
-                'excludeSwitches', ['enable-logging'])
-            options.add_argument("--headless=new")
-            
-            driver = webdriver.Chrome(service=s, options=options)
             driver.get("https://webmail.student.ubc.ca/")
 
-            login(driver, CWL + "@student.ubc.ca", PASSWORD)
+            common.login(driver, CWL + "@student.ubc.ca", PASSWORD)
 
-            WebDriverWait(driver, timeout=15).until(EC.element_to_be_clickable(
+            WebDriverWait(driver, timeout=15).until(ec.element_to_be_clickable(
                 (By.XPATH, "//*[@title = 'Write a new message (N)']")))
 
             search = driver.find_element(
@@ -104,7 +92,7 @@ def sendEmail(course: str, gradeValue: str):
             search.click()
 
             WebDriverWait(driver, timeout=15).until(
-                EC.element_to_be_clickable((By.XPATH, "//*[@title = 'Send']")))
+                ec.element_to_be_clickable((By.XPATH, "//*[@title = 'Send']")))
 
             search = driver.find_element(
                 by=By.XPATH, value="//*[@aria-label = 'To']")
@@ -113,7 +101,7 @@ def sendEmail(course: str, gradeValue: str):
                 search.send_keys(Keys.TAB)
 
             WebDriverWait(driver, timeout=15).until(
-                EC.element_to_be_clickable((By.XPATH, "//*[@aria-label = 'Subject,']")))
+                ec.element_to_be_clickable((By.XPATH, "//*[@aria-label = 'Subject,']")))
 
             search = driver.find_element(
                 by=By.XPATH, value="//*[@aria-label = 'Subject,']")
@@ -121,7 +109,7 @@ def sendEmail(course: str, gradeValue: str):
             search.send_keys("Course Grade Release - " + course)
 
             WebDriverWait(driver, timeout=15).until(
-                EC.element_to_be_clickable((By.XPATH, "//*[@aria-label = 'Message body']")))
+                ec.element_to_be_clickable((By.XPATH, "//*[@aria-label = 'Message body']")))
 
             search = driver.find_element(
                 by=By.XPATH, value="//*[@aria-label = 'Message body']")
@@ -134,47 +122,31 @@ def sendEmail(course: str, gradeValue: str):
             search.send_keys(course + "\n")
             search.send_keys(Keys.ENTER)
             if SEND_DATA:
-                search.send_keys("Grade found: " + gradeValue + "\n")
+                search.send_keys("Grade found: " + grade_value + "\n")
                 search.send_keys(Keys.ENTER)
             search.send_keys(
-                "SSC Grades are available at https://ssc.adm.ubc.ca/sscportal/servlets/SSCMain.jsp?function=SessGradeRpt\n")
+                "SSC Grades are available at https://ssc.adm.ubc.ca/sscportal/servlets/SSCMain.jsp?function"
+                "=SessGradeRpt\n")
             search.send_keys(Keys.ENTER)
             search.send_keys(Keys.CONTROL + "i")
             search.send_keys("This is an automated email")
 
             WebDriverWait(driver, timeout=15).until(
-                EC.element_to_be_clickable((By.XPATH, "//*[@title = 'Send']")))
+                ec.element_to_be_clickable((By.XPATH, "//*[@title = 'Send']")))
 
             search = driver.find_element(
                 by=By.XPATH, value="//*[@title = 'Send']")
             search.click()
-            sentEmail = 1
+            sent_email = 1
 
             time.sleep(EMAIL_SEND_DELAY)
 
             logging.info("Email sent!")
         except Exception as e:
             logging.exception("Error sending email:")
-            driver.save_screenshot("email_error.png")
+            driver.save_screenshot("email_error_" + time.strftime("%Y-%m-%d_%H-%M-%S") + ".png")
     return
 
 
-def login(driver: webdriver.Chrome, username: str, password: str):
-    # Wait for login page to load
-    time.sleep(1)
-    WebDriverWait(driver, timeout=15).until(EC.visibility_of(driver.find_element(
-        by=By.ID, value="username")))
-
-    # Fill in username field
-    search = driver.find_element(by=By.NAME, value="username")
-    search.click()
-    search.send_keys(username)
-
-    # Fill in password field and submit login
-    search = driver.find_element(by=By.NAME, value="password")
-    search.send_keys(password)
-    search.send_keys(Keys.RETURN)
-
-
 if __name__ == "__main__":
-    gradesCheck(courses)
+    grades_check(courses)
