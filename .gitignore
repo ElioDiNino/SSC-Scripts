@@ -1,5 +1,7 @@
 .vscode
+.idea
 __pycache__
 chromedriver.exe
 setup.py
 original.py
+selenium
