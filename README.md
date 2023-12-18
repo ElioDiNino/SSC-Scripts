@@ -19,7 +19,7 @@ have been released
 ## Legalities
 
 Although I (or anyone else I have spoken to who has used this) have never had any issues, SSC explicitly states
-that using any sort of automated use of the service goes against their terms of service. With that in mind, use
+that any sort of automated use of the service goes against their terms of service. With that in mind, use
 these scripts at your own risk :)
 
 ## Setup Instructions
