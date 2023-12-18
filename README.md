@@ -15,6 +15,12 @@ have been released
 
 - The computer the scripts run on must continuously remain on for SSC to be periodically scraped
   - A desktop computer or always connected laptop is recommended for this reason
+ 
+## Legalities
+
+Although I (or anyone else I have spoken to who has used this) have never had any issues, SSC explicitly states
+that using any sort of automated use of the service goes against their terms of service. With that in mind, use
+these scripts at your own risk :)
 
 ## Setup Instructions
 
