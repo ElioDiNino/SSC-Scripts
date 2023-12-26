@@ -127,5 +127,6 @@ def webdriver_config(save_data: bool) -> webdriver.Chrome:
         options.add_argument(f"user-data-dir={script_directory}\\selenium")
     options.add_experimental_option(
         'excludeSwitches', ['enable-logging'])
+    options.add_argument("--start-maximized")
 
     return webdriver.Chrome(service=s, options=options)

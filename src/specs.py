@@ -33,12 +33,6 @@ def specs_check():
             # Reset driver context
             driver.switch_to.default_content()
 
-            WebDriverWait(driver, timeout=15).until(
-                ec.element_to_be_clickable((By.LINK_TEXT, "Program")))
-
-            search = driver.find_element(by=By.LINK_TEXT, value="Program")
-            search.click()
-
             try:
                 time.sleep(2)
 
