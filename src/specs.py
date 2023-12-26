@@ -9,8 +9,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 import common
 from setup import CWL, PASSWORD, EMAIL_LIST, EMAIL_SEND_DELAY, CHECK_INTERVAL, SEND_DATA
 
-TARGET_URL = ("https://cas.id.ubc.ca/ubc-cas/login?TARGET=https%3A%2F%2Fcourses.students.ubc.ca%2Fcs%2Fsecure%2Flogin"
-              "%3FIMGSUBMIT.x%3D39%26IMGSUBMIT.y%3D19")
+TARGET_URL = "https://courses.students.ubc.ca/cs/courseschedule?pname=regi&tname=regi"
 
 
 def specs_check():
@@ -24,7 +23,15 @@ def specs_check():
         try:
             driver.get(TARGET_URL)
 
+            WebDriverWait(driver, timeout=15).until(
+                ec.element_to_be_clickable((By.CSS_SELECTOR, "#cwl > form")))
+            login_button = driver.find_element(by=By.CSS_SELECTOR, value="#cwl > form")
+            login_button.click()
+
             common.login(driver, CWL, PASSWORD)
+
+            # Reset driver context
+            driver.switch_to.default_content()
 
             WebDriverWait(driver, timeout=15).until(
                 ec.element_to_be_clickable((By.LINK_TEXT, "Program")))
@@ -114,7 +121,9 @@ def send_email(spec):
                 "Specializations are available at https://courses.students.ubc.ca/cs/courseschedule?pname=regi&tname"
                 "=regi\n")
             search.send_keys(Keys.ENTER)
-            search.send_keys(Keys.CONTROL + "i")
+            italic = driver.find_element(
+                by=By.XPATH, value="//*[@aria-label = 'Italics']")
+            italic.click()
             search.send_keys("This is an automated email")
 
             WebDriverWait(driver, timeout=15).until(

@@ -24,11 +24,12 @@ def grades_check(check_courses: list):
         driver = common.webdriver_config(True)
 
         try:
-            driver.get(
-                "https://cas.id.ubc.ca/ubc-cas/login?TARGET=https%3A%2F%2Fssc.adm.ubc.ca%2Fsscportal%2Fservlets"
-                "%2FSSCMain.jsp%3Ffunction%3DSessGradeRpt")
+            driver.get(TARGET_URL)
 
             common.login(driver, CWL, PASSWORD)
+
+            # Reset driver context
+            driver.switch_to.default_content()
 
             WebDriverWait(driver, timeout=15).until(
                 ec.frame_to_be_available_and_switch_to_it("iframe-main"))
@@ -128,7 +129,9 @@ def send_email(course: str, grade_value: str):
                 "SSC Grades are available at https://ssc.adm.ubc.ca/sscportal/servlets/SSCMain.jsp?function"
                 "=SessGradeRpt\n")
             search.send_keys(Keys.ENTER)
-            search.send_keys(Keys.CONTROL + "i")
+            italic = driver.find_element(
+                by=By.XPATH, value="//*[@aria-label = 'Italics']")
+            italic.click()
             search.send_keys("This is an automated email")
 
             WebDriverWait(driver, timeout=15).until(
