@@ -1,3 +1,4 @@
+import glob
 import logging
 import os
 import pathlib
@@ -16,8 +17,8 @@ from setup import CWL, PASSWORD
 
 FIVE_MINUTES = 5 * 60
 
-# Chrome driver releases: https://chromedriver.chromium.org/downloads
-s = Service('chromedriver.exe')
+# See README for chromedriver releases link
+s = None
 # Logging configuration
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s   %(levelname)-5s  %(message)s',
@@ -91,7 +92,25 @@ def initial_login():
     driver.quit()
 
 
+def find_chromedriver():
+    """
+    Finds the chromedriver in the current working directory
+
+    Required since the executable will be slightly different for different platforms
+    """
+    global s
+
+    # Use a wildcard search to allow for any ending/extension
+    files = glob.glob('./chromedriver*')
+    if len(files) == 0:
+        logging.error("No chromedriver found")
+        exit(1)
+    s = Service(executable_path=files[0])
+
+
 def setup():
+    find_chromedriver()
+
     # Delete the selenium folder to force a new login
     script_directory = pathlib.Path().absolute()
     if os.path.exists(f"{script_directory}\\selenium"):
@@ -108,6 +127,5 @@ def webdriver_config(save_data: bool) -> webdriver.Chrome:
         options.add_argument(f"user-data-dir={script_directory}\\selenium")
     options.add_experimental_option(
         'excludeSwitches', ['enable-logging'])
-    options.add_argument("--headless=new")
 
     return webdriver.Chrome(service=s, options=options)
