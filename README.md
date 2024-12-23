@@ -1,4 +1,8 @@
 # UBC SSC Scripts
+
+> [!IMPORTANT]
+> Due to UBC's transition to Workday Student from SSC in 2024, these scripts are no longer functional. As a result, this project has been archived.
+
 This repository is home to different scripts for checking when new information (that isn't otherwise emailed at
 all or in a timely fashion) becomes available on [UBC's SSC](https://ssc.adm.ubc.ca/). It uses Python and the
 Selenium library to check SSC and then notify the specified emails through
